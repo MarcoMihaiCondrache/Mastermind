@@ -20,6 +20,8 @@ public class ImageRetriever extends SwingWorker<Icon, Void> {
 
     @Override
     protected Icon doInBackground() throws Exception {
+        Logger.debug("Started to retrieve image: " + imageUrl.getPath());
+
         return retrieveImage(imageUrl);
     }
 
@@ -37,14 +39,12 @@ public class ImageRetriever extends SwingWorker<Icon, Void> {
 
     @Override
     protected void done() {
-        Icon icon = null;
-        String text = null;
         try {
-            icon = get();
+            lblImage.setIcon(get());
+
+            Logger.debug("Image retrieved: " + imageUrl.getPath());
         } catch (Exception ignore) {
-            text = "Image unavailable";
+            Logger.error("Failed to retrieve image: " + imageUrl.getPath());
         }
-        lblImage.setIcon(icon);
-        lblImage.setText(text);
     }
 }

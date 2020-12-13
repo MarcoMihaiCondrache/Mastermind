@@ -1,9 +1,11 @@
 package com.mastermind.Workers;
 
 import com.mastermind.UI.Board;
+import com.mastermind.Utils.Logger;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class IndicatorsWorker extends SwingWorker<HashMap<Integer, HashMap<Integer, Color>>, Void> {
@@ -20,6 +22,8 @@ public class IndicatorsWorker extends SwingWorker<HashMap<Integer, HashMap<Integ
     @Override
     protected HashMap<Integer, HashMap<Integer, Color>> doInBackground() throws Exception {
         HashMap<Integer, HashMap<Integer, Color>> indicators = new HashMap<Integer, HashMap<Integer, java.awt.Color>>();
+
+        Logger.debug("Worker: " + this.getClass().getName() + " started");
 
         for (int i = 0; i < 8; i++) {
             HashMap<Integer, Color> single = new HashMap<Integer, java.awt.Color>();
@@ -38,8 +42,10 @@ public class IndicatorsWorker extends SwingWorker<HashMap<Integer, HashMap<Integ
         try {
             board.setIndicators(get());
             board.setPainting(true);
+
+            Logger.debug("Worker: " + this.getClass().getName() + " done");
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error("Exception occurred: " + Arrays.toString(e.getStackTrace()));
         }
     }
 }

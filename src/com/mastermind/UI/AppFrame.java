@@ -1,23 +1,60 @@
 package com.mastermind.UI;
 
-import java.awt.*;
-import javax.swing.*;
-
 import com.mastermind.Game.Generator;
 import com.mastermind.Game.Level;
 import com.mastermind.Workers.IndicatorsWorker;
 import com.mastermind.Workers.PlaceholderWorker;
 import com.mastermind.Workers.SequenceWorker;
 
+import javax.swing.*;
+import java.awt.*;
+
+/**
+ * Main Game class: here the board is created and the workers are started
+ *
+ * <p>
+ * We create a new Generator for the level and define
+ * frame settings like size and close operation
+ * </p>
+ */
 public class AppFrame extends JFrame {
     static final long serialVersionUID = 1L;
+
+    /**
+     * Default window width
+     */
     static final int WINDOW_WIDTH = 500;
+
+    /**
+     * Default window height
+     */
     static final int WINDOW_HEIGHT = 800;
 
+    /**
+     * Container field: it will contain the content pane where we will
+     * add the board
+     */
     public Container appContainer;
+
+    /**
+     * Generator instance to define sizes based on the user-selected level
+     */
     public Generator generator;
+
+    /**
+     * Board instance where all the draw starts
+     */
     public Board board;
 
+    /**
+     * AppFrame constructor where we create the board and the generator
+     *
+     * <p>
+     * Here the workers are started
+     * </p>
+     *
+     * @param level The level selected by the user
+     */
     public AppFrame(Level level) {
         super("MasterMind");
 

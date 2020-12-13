@@ -1,42 +1,51 @@
 package com.mastermind.UI;
 
-import java.awt.event.*;
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 
-import com.mastermind.Utils.Logger;
-
+/**
+ * Dialog to allow the user to select the color
+ * for the placeholder
+ */
 public class ColorSelector extends JDialog {
     static final long serialVersionUID = 4L;
-    static final String[] colorsString = { "Rosso", "Blu", "Verde", "Giallo", "Bianco", "Arancione", "Magenta",
-            "Nero" };
+    static final String[] colorsString = {"Rosso", "Blu", "Verde", "Giallo", "Bianco", "Arancione", "Magenta",
+            "Nero"};
 
-    private JButton saveButton = new JButton("Salva");
-    private JButton closeButton = new JButton("Chiudi");
-    private JPanel colorsPanel = new JPanel();
-    private JPanel actionsPanel = new JPanel();
     private final JComboBox<String> colors = new JComboBox<String>(colorsString);
 
+    /**
+     * Color instance to save the selected color by the user
+     */
     public Color selectedColor = Color.RED;
+
+    /**
+     * Bool to check if the user pressed the save button
+     */
     public boolean save = false;
 
+    /**
+     * Dialog constructor where we create the UI and prepare the dialog
+     *
+     * @param frame Frame that creates the dialog
+     */
     public ColorSelector(JFrame frame) {
         super(frame, "Select Color");
 
-        frame.setEnabled(false);
+        JButton saveButton = new JButton("Salva");
+        JButton closeButton = new JButton("Chiudi");
+        JPanel colorsPanel = new JPanel();
+        JPanel actionsPanel = new JPanel();
 
-        Logger.info("Dialog Created");
+        //disable frame
+        frame.setEnabled(false);
 
         this.setSize(300, 300);
         this.setResizable(false);
         this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        this.setScreenPosition(frame);
 
         colors.setPreferredSize(new Dimension(140, 20));
-
-        Rectangle screen = frame.getGraphicsConfiguration().getBounds();
-
-        this.setLocation(screen.x + (screen.width - (this.getWidth() / 2)) / 2,
-                screen.y + (screen.height - (this.getHeight() / 2)) / 2);
 
         colorsPanel.add(colors);
         actionsPanel.add(saveButton);
@@ -63,32 +72,38 @@ public class ColorSelector extends JDialog {
         });
 
         colors.addActionListener(e -> {
-            switch (String.valueOf(colors.getSelectedItem())) {
-                case "Rosso":
-                    selectedColor = Color.RED;
-                    break;
-                case "Blu":
-                    selectedColor = Color.BLUE;
-                    break;
-                case "Verde":
-                    selectedColor = Color.GREEN;
-                    break;
-                case "Giallo":
-                    selectedColor = Color.YELLOW;
-                    break;
-                case "Bianco":
-                    selectedColor = Color.WHITE;
-                    break;
-                case "Arancione":
-                    selectedColor = new Color(255, 69, 0);
-                    break;
-                case "Magenta":
-                    selectedColor = Color.MAGENTA;
-                    break;
-                case "Nero":
-                    selectedColor = Color.BLACK;
-                    break;
-            }
+            selectedColor = itemToColor(String.valueOf(colors.getSelectedItem()));
         });
+    }
+
+    private void setScreenPosition(JFrame frame) {
+        Rectangle screen = frame.getGraphicsConfiguration().getBounds();
+
+        // Center dialog in working screen
+        this.setLocation(screen.x + (screen.width - (this.getWidth() / 2)) / 2,
+                screen.y + (screen.height - (this.getHeight() / 2)) / 2);
+    }
+
+    private Color itemToColor(String item) {
+        switch (item) {
+            case "Rosso":
+                return Color.RED;
+            case "Blu":
+                return Color.BLUE;
+            case "Verde":
+                return Color.GREEN;
+            case "Giallo":
+                return Color.YELLOW;
+            case "Bianco":
+                return Color.WHITE;
+            case "Arancione":
+                return new Color(255, 69, 0);
+            case "Magenta":
+                return Color.MAGENTA;
+            case "Nero":
+                return Color.BLACK;
+            default:
+                return Color.GRAY;
+        }
     }
 }

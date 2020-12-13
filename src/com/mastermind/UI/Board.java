@@ -1,6 +1,7 @@
 package com.mastermind.UI;
 
 import com.mastermind.Game.Generator;
+import com.mastermind.Utils.Layout;
 import com.mastermind.Utils.Logger;
 
 import javax.swing.*;
@@ -11,7 +12,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
 import java.util.HashMap;
-import java.util.Map;
 
 class Position {
     public int x;
@@ -23,32 +23,80 @@ class Position {
     }
 }
 
+/**
+ * Board class where all the game is draw
+ *
+ * <p>
+ * Is a custom draw JPanel based on external events
+ * </p>
+ * <p>
+ * We detect board clicks based on the mouse click
+ */
 public class Board extends JPanel {
     static final long serialVersionUID = 3L;
 
     private final Container appContainer;
-    private Graphics2D board;
     private final HashMap<Integer, HashMap<Integer, Position>> placeholderPositions = new HashMap<>();
-    private int clickedI = 0;
-    private int clickedJ = 0;
     private final Generator generator;
-    private Boolean painting = false;
 
+    /**
+     * Field to store the board width
+     */
     public int boardWidth = 0;
+
+    /**
+     * Field to store to board height
+     */
     public int boardHeight = 0;
+
+    /**
+     * Field that contains the available width
+     */
     public int fullWidth = 0;
+
+    /**
+     * Field that contains the available height
+     */
     public int fullHeight = 0;
 
+    /**
+     * Contains the generated sequence
+     */
     public HashMap<Integer, Color> sequence = new HashMap<>();
-    public HashMap<Integer, HashMap<Integer, Color>> placeholder = new HashMap<>();
-    public HashMap<Integer, HashMap<Integer, Color>> indicators = new HashMap<>();
-    public Boolean sequenceHidden = true;
 
+    /**
+     * Contains the placeholder colors
+     */
+    public HashMap<Integer, HashMap<Integer, Color>> placeholder = new HashMap<>();
+
+    /**
+     * Contains the indicators colors
+     */
+    public HashMap<Integer, HashMap<Integer, Color>> indicators = new HashMap<>();
+
+    /**
+     * Field used to save the sequence status: Visible (false) or Hidden (true)
+     */
+    public boolean sequenceHidden = true;
+
+    private Graphics2D board;
+    private int clickedI = 0;
+    private int clickedJ = 0;
+    private boolean painting = false;
+    private boolean clickEnabled = true;
+
+    /**
+     * Board constructor where click listener and settings are added
+     *
+     * @param container Container of the JFrame
+     * @param frame     Frame where the board is drawn
+     * @param generator Generator to retrieve correct size based on level
+     */
     public Board(Container container, JFrame frame, Generator generator) {
         this.appContainer = container;
         this.generator = generator;
 
-        // Enable double buffer (more performance but more memory usage)
+        // Enable double buffer (more visible performance [do drawing in background than display])
         this.setDoubleBuffered(true);
 
         addMouseListener(new MouseListener() {
@@ -63,8 +111,8 @@ public class Board extends JPanel {
                         Position position = single.get(j);
 
                         if (mouseX >= position.x && mouseX <= position.x + 50) {
-                            if (mouseY >= position.y && mouseY <= position.y + 50) {
-                                Logger.info("Clicked: " + i + ", " + j);
+                            if (mouseY >= position.y && mouseY <= position.y + 50 && clickEnabled) {
+                                Logger.debug("Clicked: " + i + ", " + j);
 
                                 boolean available = true;
 
@@ -85,6 +133,7 @@ public class Board extends JPanel {
                                 if (available) {
                                     clickedI = i;
                                     clickedJ = j;
+                                    clickEnabled = false;
 
                                     ColorSelector selector = new ColorSelector(frame);
 
@@ -92,7 +141,7 @@ public class Board extends JPanel {
                                         @Override
                                         public void windowClosed(WindowEvent e) {
                                             if (selector.save) {
-                                                Logger.info("Dialog Closed: " + selector.selectedColor);
+                                                Logger.debug("Dialog Closed: " + selector.selectedColor);
                                                 updatePlaceholder(selector.selectedColor);
 
                                                 if (isRowCompleted(clickedI)) {
@@ -100,6 +149,7 @@ public class Board extends JPanel {
                                                 }
                                             }
 
+                                            clickEnabled = true;
                                             frame.setEnabled(true);
                                         }
                                     });
@@ -111,23 +161,40 @@ public class Board extends JPanel {
             }
 
             @Override
-            public void mouseEntered(MouseEvent arg0) {
+            public void mousePressed(MouseEvent mouseEvent) {
+
             }
 
             @Override
-            public void mouseExited(MouseEvent arg0) {
+            public void mouseReleased(MouseEvent mouseEvent) {
+
             }
 
             @Override
-            public void mousePressed(MouseEvent arg0) {
+            public void mouseEntered(MouseEvent mouseEvent) {
+
             }
 
             @Override
-            public void mouseReleased(MouseEvent arg0) {
+            public void mouseExited(MouseEvent mouseEvent) {
+
             }
         });
     }
 
+    /**
+     * Method where painting is done
+     *
+     * <p>
+     * We define sizes and RenderingHints
+     * </p>
+     *
+     * <p>
+     * We draw all the components
+     * </p>
+     *
+     * @param g Passed graphics reference
+     */
     @Override
     public void paint(Graphics g) {
         fullWidth = appContainer.getWidth();
@@ -152,25 +219,47 @@ public class Board extends JPanel {
             this.drawPlaceholder();
             this.drawIndicators();
         }
+
+        Logger.debug("Paint request: " + board.hashCode());
     }
 
-    public void setPainting(Boolean arg) {
+    /**
+     * Method to enable or disable board painting
+     *
+     * @param status New status to set
+     */
+    public void setPainting(Boolean status) {
         if (this.sequence.size() > 0 && this.placeholder.size() > 0 && this.indicators.size() > 0) {
-            this.painting = arg;
+            this.painting = status;
             this.repaint();
+        } else {
+            Logger.warning("Paint request: " + this.sequence.size() + "," + this.placeholder.size() + "," + this.indicators.size());
         }
-
-        Logger.info("\nPaint request\n\nTrying to set painting with sizes: " + this.sequence.size() + ", " + this.placeholder.size() + ", " + this.indicators.size() + "\nPaint status: " + this.painting);
     }
 
+    /**
+     * Updates the sequence with a new one
+     *
+     * @param newSequence New sequence to set
+     */
     public void setSequence(HashMap<Integer, Color> newSequence) {
         this.sequence = newSequence;
     }
 
+    /**
+     * Updates the indicators with new provided
+     *
+     * @param newIndicators New indicators to set
+     */
     public void setIndicators(HashMap<Integer, HashMap<Integer, Color>> newIndicators) {
         this.indicators = newIndicators;
     }
 
+    /**
+     * Updates placeholder with new provided
+     *
+     * @param placeholder New placeholder to set
+     */
     public void setPlaceholder(HashMap<Integer, HashMap<Integer, Color>> placeholder) {
         this.placeholder = placeholder;
     }
@@ -178,7 +267,7 @@ public class Board extends JPanel {
     /*
         Update placeholder and repaint only portion
      */
-    public void updatePlaceholder(Color color) {
+    private void updatePlaceholder(Color color) {
         this.placeholder.get(clickedI).put(clickedJ, color);
 
         int x = this.placeholderPositions.get(clickedI).get(clickedJ).x;
@@ -295,27 +384,27 @@ public class Board extends JPanel {
     }
 
     private void rowCompleted(int i) {
-        Logger.info("The row at: " + i + " was completed");
+        Logger.debug("The row at: " + i + " was completed");
 
         if (i == 0) {
             sequenceHidden = false;
         }
 
-        Logger.info(String.valueOf(placeholder.get(i)));
-
-        HashMap<Integer, Color> sequenceCopy = sequence;
-        HashMap<Integer, Color> rowCopy = placeholder.get(i);
+        HashMap<Integer, Color> sequenceCopy = new HashMap<>(sequence);
+        HashMap<Integer, Color> rowCopy = new HashMap<>(placeholder.get(i));
 
         for (int j = 0; j < sequenceCopy.size(); j++) {
             if (rowCopy.get(j) == sequenceCopy.get(j)) {
                 sequenceCopy.put(j, null);
                 addIndicator(7 - i, Color.RED);
             } else if (sequenceCopy.containsValue(rowCopy.get(j))) {
-                for (Map.Entry<Integer, Color> entry : sequenceCopy.entrySet()) {
-                    if (entry != null && entry.getValue().equals(rowCopy.get(j))) {
-                        sequenceCopy.put(entry.getKey(), null);
-                        addIndicator(7 - i, Color.WHITE);
-                        break;
+                for (int k = 0; k < sequenceCopy.size(); k++) {
+                    if (sequenceCopy.get(k) != null) {
+                        if (sequenceCopy.get(k).equals(rowCopy.get(j))) {
+                            sequenceCopy.put(k, null);
+                            addIndicator(7 - i, Color.WHITE);
+                            break;
+                        }
                     }
                 }
             }
@@ -324,7 +413,7 @@ public class Board extends JPanel {
         if (placeholder.get(i).equals(sequence)) {
             sequenceHidden = false;
 
-            Logger.info("Sequence match, hashcode: " + sequence.hashCode());
+            Logger.debug("Sequence match, hashcode: " + sequence.hashCode());
             return;
         }
 
